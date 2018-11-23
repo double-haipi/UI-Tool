@@ -1,0 +1,133 @@
+require "Common";
+require "JsonManager";
+require "EventDispatcher";
+require "__ACTION_NAME__Settings";
+require "__ACTION_NAME__Messager";
+
+local Logger = Common.GetLogger();
+local __ACTION_NAME__Panel = require "__ACTION_NAME__Panel"
+local CSharpInterface = com.tencent.pandora.CSharpInterface;
+
+local mt = { };
+
+function mt:New()
+    local o = { };
+    setmetatable(o, self);
+    self.__index = self;
+    return o;
+end
+function mt:Init()
+    if Common.GetTotalSwitch() == false then
+        Common.Report("潘多拉总开关关闭", 0, 0);
+        return;
+    end
+    __ACTION_NAME__Settings.Init();
+
+    if Common.GetFunctionSwitch(__ACTION_NAME__Settings.switchName) == false then
+        Logger.DEBUG("__ACTION_NAME__开关关闭");
+        Common.Report("__ACTION_NAME__开关关闭", 0, 0);
+        return;
+    end
+    
+    EventDispatcher.AddEventListener(Common.GAME_COMMAND, self.HandleGameCmd, self);
+end
+
+function mt:HandleGameCmd(jsonCmd)
+    local tableCmd = JsonManager.DecodeJson(jsonCmd);
+    if tableCmd.type == "open" and tableCmd.content ~= nil and tableCmd.content == __ACTION_NAME__Settings.gameCommandContent then
+        if self.gameObject == nil then
+            self.parentNodePath = tableCmd.parentPath or "";
+            Common.CreatePanel(__ACTION_NAME__Settings.panelName, self.OnCreate, self);
+        else
+            self.gameObject:SetActive(true);
+        end
+        return;
+    end
+
+    if tableCmd.type == "panelDestroy" and tableCmd.content == __ACTION_NAME__Settings.panelName then
+        if self.destroyByPandora == true then
+            self.destroyByPandora = false;
+        else
+            self:OnAbnoramlDestroy();
+        end
+        return;
+    end
+end
+
+function mt:OnCreate(obj)
+    self.gameObject = obj;
+    self.panel = __ACTION_NAME__Panel:New();
+    self.panel:Init(self.gameObject);
+    self:AddEventListeners();
+    __ACTION_NAME__Messager.Created(__ACTION_NAME__Settings.panelName);
+end
+
+--UGUIBegin 
+function mt:AddEventListeners()
+    -- 采用event 和function字典形式存储
+    self.eventFunctionMap = { };
+    -- 界面显隐
+    --示例 self.eventFunctionMap[self.panel.closeButton:GetComponent("Button").onClick] = function() self:DestroyPanel(); end;
+    --AddEventListeners_Insertion_Point
+
+    for event, response in pairs(self.eventFunctionMap) do
+        event:AddListener(response);
+    end
+end
+--UGUIEnd
+
+--NGUIBegin 
+function mt:AddEventListeners()
+    self.buttonFunctionMap = { };
+    --示例 self.buttonFunctionMap[self.panel.closeButton] = function(go) self:DestroyPanel(go); end;
+    --AddEventListeners_Insertion_Point
+
+    for button, response in pairs(self.buttonFunctionMap) do
+        UIEventListener.Get(button).onClick = response;
+    end
+end
+--NGUIEnd
+
+--UGUIBegin
+function mt:RemoveEventListeners()
+    for event, response in pairs(self.eventFunctionMap) do
+        event:RemoveListener(response);
+    end
+    self.eventFunctionMap = { };
+end
+--UGUIEnd
+
+--NGUIBegin
+function mt:RemoveEventListeners()
+    for button, response in pairs(self.buttonFunctionMap) do
+        UIEventListener.Get(button).onClick = nil;
+    end
+    self.buttonFunctionMap = { };
+end
+--NGUIEnd
+
+function mt:DestroyPanel()
+    self.destroyByPandora = true;
+    self:RemoveEventListeners();
+    Common.DestroyPanel(__ACTION_NAME__Settings.panelName);
+    self.panel:OnDestroy();
+    self.gameObject = nil;
+    __ACTION_NAME__Messager.Closed(__ACTION_NAME__Settings.panelName, self.isPopPanel, self.isEmbeded)
+end
+
+-- 游戏异常关闭pandora处理
+function mt:OnAbnoramlDestroy()
+    Logger.WARN("异常销毁");
+    self.destroyByPandora = false;
+    Common.DestroyPanel(__ACTION_NAME__Settings.panelName);
+    self.panel:OnDestroy();
+    self.gameObject = nil;
+    __ACTION_NAME__Messager.Closed(__ACTION_NAME__Settings.panelName, self.isPopPanel, self.isEmbeded)
+end
+
+
+--Button_Click_Response_Function_Insertion_Point
+
+return mt;
+
+

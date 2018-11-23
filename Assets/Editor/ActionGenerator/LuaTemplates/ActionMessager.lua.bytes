@@ -1,0 +1,41 @@
+require "Common"
+
+__ACTION_NAME__Messager = { };
+
+function __ACTION_NAME__Messager.Ready(panelName, isPopPanel)
+    local cmdTable = { };
+    cmdTable["type"] = "pandoraReady";
+    cmdTable["content"] = panelName;
+    cmdTable["isPopPanel"] = "0";
+    if isPopPanel == true then
+        cmdTable["isPopPanel"] = "1";
+    end
+    __ACTION_NAME__Messager.CallGame(cmdTable)
+end
+
+function __ACTION_NAME__Messager.Created(panelName)
+    local cmdTable = { };
+    cmdTable["type"] = "pandoraCreated";
+    cmdTable["content"] = panelName;
+    __ACTION_NAME__Messager.CallGame(cmdTable)
+end
+
+function __ACTION_NAME__Messager.Closed(panelName, isPopPanel, isEmbeded)
+    local cmdTable = { };
+    cmdTable["type"] = "pandoraClosed";
+    cmdTable["content"] = panelName;
+    cmdTable["isPopPanel"] = "0";
+    cmdTable["isInsertPanel"] = "0";
+    if isPopPanel == true then
+        cmdTable["isPopPanel"] = "1";
+    end
+    if isEmbeded == true then
+        cmdTable["isInsertPanel"] = "1";
+    end
+    __ACTION_NAME__Messager.CallGame(cmdTable)
+end
+
+function __ACTION_NAME__Messager.CallGame(cmdTable)
+    Common.TablePrinter(cmdTable, "Pandora To Game")
+    Common.CallGame(JsonManager.EncodeJson(cmdTable))
+end

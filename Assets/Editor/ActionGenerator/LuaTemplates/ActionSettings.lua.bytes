@@ -1,0 +1,28 @@
+require "Common";
+
+__ACTION_NAME__Settings = { };
+
+function __ACTION_NAME__Settings.Init()
+    __ACTION_NAME__Settings.InitAcivityParams();
+end
+
+function __ACTION_NAME__Settings.InitAcivityParams()
+    __ACTION_NAME__Settings.switchName = "__SWITCH_NAME__";
+    __ACTION_NAME__Settings.actStyle = "__ACT_STYLE__";
+    __ACTION_NAME__Settings.channelId = "__CHANNEL_ID__";
+    __ACTION_NAME__Settings.panelName = "__ACTION_NAME__";
+    __ACTION_NAME__Settings.gameCommandContent = "__GAME_COMMAND_CONTENT__";
+
+end
+
+
+--预留的一个创建枚举table函数
+function __ACTION_NAME__Settings.CreateEnumTable(tbl, startIndex)
+    local enumTable = { };
+    local enumIndex = startIndex or 0;
+    for i, v in ipairs(tbl) do
+        enumTable[v] = enumIndex;
+        enumIndex = enumIndex + 1;
+    end
+    return enumTable;
+end

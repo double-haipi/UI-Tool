@@ -1,0 +1,28 @@
+require "Common";
+require "__ACTION_NAME__Settings";
+local Logger = Common.GetLogger();
+
+local mt = { };
+function mt:New()
+    local o = { };
+    setmetatable(o, self);
+    self.__index = self;
+    return o;
+end
+
+function mt:Init(obj)
+    self.transform = obj.transform;
+    -- 示例 self.closeButton = self.transform:Find("Button_close").gameObject;
+    -- Panel_Init_Insertion_Point
+end
+
+
+function mt:OnDestroy()
+    for key, var in pairs(self) do
+        if type(var) ~= "function" then
+            self[key] = nil;
+        end
+    end
+end
+
+return mt;

@@ -1,0 +1,7 @@
+--[[
+说明：__大写字母__为要替换的关键字
+]]
+local __ACTION_NAME__Controller = require "__ACTION_NAME__Controller";
+local controller = __ACTION_NAME__Controller:New();
+controller:Init();
+
